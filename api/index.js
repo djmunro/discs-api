@@ -1,7 +1,9 @@
 const app = require('express')();
-const { v4 } = require('uuid');
+const { PrismaClient } = require('@prisma/client');
 
-app.get('/', async (req, res) => {
+const prisma = new PrismaClient();
+
+app.get('/api', async (req, res) => {
   const page = parseInt(req.query.page) || 1;
   const pageSize = parseInt(req.query.pageSize) || 10;
   const skip = (page - 1) * pageSize;
