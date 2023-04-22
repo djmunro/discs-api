@@ -15,9 +15,6 @@ app.get('/api', async (req, res) => {
 
   const totalItems = await prisma.disc.count();
 
-  res.setHeader('Content-Type', 'text/html');
-  res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
-
   res.json({
     discs,
     page,
