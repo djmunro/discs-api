@@ -15,25 +15,29 @@ app.use(cors());
 app.use(express.json());
 
 // Configure routes
-app.get('/', async (req, res) => {
-  const page = parseInt(req.query.page) || 1;
-  const pageSize = parseInt(req.query.pageSize) || 10;
-  const skip = (page - 1) * pageSize;
+// app.get('/', async (req, res) => {
+//   const page = parseInt(req.query.page) || 1;
+//   const pageSize = parseInt(req.query.pageSize) || 10;
+//   const skip = (page - 1) * pageSize;
 
-  const discs = await prisma.disc.findMany({
-    skip,
-    take: pageSize,
-  });
+//   const discs = await prisma.disc.findMany({
+//     skip,
+//     take: pageSize,
+//   });
 
-  const totalItems = await prisma.disc.count();
+//   const totalItems = await prisma.disc.count();
 
-  res.json({
-    discs,
-    page,
-    pageSize,
-    totalPages: Math.ceil(totalItems / pageSize),
-    totalItems,
-  });
+//   res.json({
+//     discs,
+//     page,
+//     pageSize,
+//     totalPages: Math.ceil(totalItems / pageSize),
+//     totalItems,
+//   });
+// })
+
+p.get('/', async (req, res) => {
+  res.send("hello world");
 })
 
 // Start Express app
