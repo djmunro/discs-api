@@ -1,0 +1,34 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum Flexibility {
+    // Enum values go here, e.g.,
+    LOW
+    MEDIUM
+    HIGH
+}
+
+model Disc {
+    id                  Int          @id @default(autoincrement())
+    manufacturer        String
+    discModel           String
+    maxWeight           Float?
+    diameter            Float?
+    height              Float?
+    rimDepth            Float?
+    insideRimDiameter   Float?
+    rimThickness        Float?
+    rimConfiguration    Float?
+    flexibility         Flexibility?
+    certificationNumber String?
+    approvedDate        DateTime?
+}
