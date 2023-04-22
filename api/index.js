@@ -1,16 +1,28 @@
 const app = require('express')();
 const { v4 } = require('uuid');
 
-app.get('/api', (req, res) => {
-  const path = `/api/item/${v4()}`;
+app.get('/', async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const pageSize = parseInt(req.query.pageSize) || 10;
+  const skip = (page - 1) * pageSize;
+
+  const discs = await prisma.disc.findMany({
+    skip,
+    take: pageSize,
+  });
+
+  const totalItems = await prisma.disc.count();
+
   res.setHeader('Content-Type', 'text/html');
   res.setHeader('Cache-Control', 's-max-age=1, stale-while-revalidate');
-  res.end(`Hello! Go to item: <a href="${path}">${path}</a>`);
-});
 
-app.get('/api/item/:slug', (req, res) => {
-  const { slug } = req.params;
-  res.end(`Item: ${slug}`);
-});
+  res.json({
+    discs,
+    page,
+    pageSize,
+    totalPages: Math.ceil(totalItems / pageSize),
+    totalItems,
+  });
+})
 
 module.exports = app;
