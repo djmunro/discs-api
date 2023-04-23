@@ -29,7 +29,7 @@ const createFastifyApp = () => {
 
     const totalItems = await prisma.disc.count();
 
-    reply.json({
+    reply.send({
       discs,
       page,
       pageSize,
