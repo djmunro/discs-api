@@ -17,8 +17,8 @@ const createFastifyApp = () => {
   app.register(fastifyPlugin(prismaPlugin))
 
   app.get('/discs', async (request, reply) => {
-    const page = parseInt(req.query.page) || 1;
-    const pageSize = parseInt(req.query.pageSize) || 10;
+    const page = parseInt(request.query.page) || 1;
+    const pageSize = parseInt(request.query.pageSize) || 10;
     const skip = (page - 1) * pageSize;
 
     const discs = await prisma.disc.findMany({
