@@ -1,47 +1,46 @@
-const express = require('express');
-const cors = require('cors');
-const { PrismaClient } = require('@prisma/client');
+const fastifyPlugin = require('fastify-plugin')
+const Fastify = require('fastify')
+const { PrismaClient } = require('@prisma/client')
 
-const discs = require('./api/discs');
+async function prismaPlugin(fastify, options) {
+  const prisma = new PrismaClient()
+  fastify.decorate('prisma', prisma)
+  fastify.addHook('onClose', async (instance, done) => {
+    await prisma.$disconnect()
+    done()
+  })
+}
 
-// Create Express app
-const app = express();
+const app = Fastify()
 
-// Create Prisma client
-const prisma = new PrismaClient();
+app.register(fastifyPlugin(prismaPlugin))
 
-// Configure Express app
-app.use(cors());
-app.use(express.json());
-
-// Configure routes
-// app.get('/', async (req, res) => {
-//   const page = parseInt(req.query.page) || 1;
-//   const pageSize = parseInt(req.query.pageSize) || 10;
-//   const skip = (page - 1) * pageSize;
-
-//   const discs = await prisma.disc.findMany({
-//     skip,
-//     take: pageSize,
-//   });
-
-//   const totalItems = await prisma.disc.count();
-
-//   res.json({
-//     discs,
-//     page,
-//     pageSize,
-//     totalPages: Math.ceil(totalItems / pageSize),
-//     totalItems,
-//   });
-// })
-
-p.get('/', async (req, res) => {
-  res.send("hello world");
+app.get('/discs', async (request, reply) => {
+  const discs = await app.prisma.disc.findMany()
+  reply.send(discs)
 })
 
-// Start Express app
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+app.post('/discs', async (request, reply) => {
+  const newDisc = await app.prisma.disc.create({
+    data: {
+      name: request.body.name,
+    },
+  })
+  reply.send(newDisc)
+})
+
+const start = async () => {
+  try {
+    await app.listen(3000)
+    console.log('Server listening on http://localhost:3000')
+  } catch (err) {
+    console.error(err)
+    process.exit(1)
+  }
+}
+
+if (require.main === module) {
+  start()
+} else {
+  module.exports = app
+}

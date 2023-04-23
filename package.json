@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "migrate": "prisma migrate dev"
+    "migrate": "prisma migrate dev",
+    "postinstall": "prisma generate"
   },
   "keywords": [],
   "author": "",
@@ -18,8 +19,11 @@
     "@prisma/client": "4.13.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "fastify": "^4.15.0",
+    "fastify-plugin": "^4.5.0",
     "nodemon": "^2.0.22",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "vercel": "^28.20.0"
   },
   "devDependencies": {
     "csv-parser": "^3.0.0",
