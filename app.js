@@ -1,5 +1,5 @@
 const fastifyPlugin = require('fastify-plugin')
-const fastifySwagger = require('fastify-swagger')
+const fastifySwagger = require('@fastify/swagger')
 const Fastify = require('fastify')
 const { PrismaClient } = require('@prisma/client')
 
@@ -17,7 +17,7 @@ const createFastifyApp = () => {
   const app = Fastify()
 
   app.register(fastifySwagger, {
-    routePrefix: '/',
+    routePrefix: '/docs',
     swagger: {
       info: {
         title: 'Disc API',
@@ -37,6 +37,10 @@ const createFastifyApp = () => {
   })
 
   app.register(fastifyPlugin(prismaPlugin))
+
+  app.get('/', (request, reply) => {
+    reply.redirect('/docs')
+  })
 
   app.get('/discs', {
     schema: {
