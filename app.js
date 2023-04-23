@@ -16,12 +16,12 @@ const createFastifyApp = () => {
 
   app.register(fastifyPlugin(prismaPlugin))
 
-  app.get('/api/discs', async (request, reply) => {
+  app.get('/discs', async (request, reply) => {
     const discs = await app.prisma.disc.findMany()
     reply.send(discs)
   })
 
-  app.post('/api/discs', async (request, reply) => {
+  app.post('/discs', async (request, reply) => {
     const newDisc = await app.prisma.disc.create({
       data: {
         name: request.body.name,
