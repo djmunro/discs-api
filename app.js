@@ -2,8 +2,9 @@ const fastifyPlugin = require('fastify-plugin')
 const Fastify = require('fastify')
 const { PrismaClient } = require('@prisma/client')
 
+const prisma = new PrismaClient()
+
 async function prismaPlugin(fastify, options) {
-  const prisma = new PrismaClient()
   fastify.decorate('prisma', prisma)
   fastify.addHook('onClose', async (instance, done) => {
     await prisma.$disconnect()
