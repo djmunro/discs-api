@@ -1,5 +1,4 @@
 const fastifyPlugin = require('fastify-plugin')
-const fastifySwagger = require('@fastify/swagger')
 const Fastify = require('fastify')
 const { PrismaClient } = require('@prisma/client')
 
@@ -13,28 +12,78 @@ async function prismaPlugin(fastify, options) {
   })
 }
 
-const createFastifyApp = () => {
-  const app = Fastify()
 
-  app.register(fastifySwagger, {
-    routePrefix: '/docs',
-    swagger: {
-      info: {
-        title: 'Disc API',
-        description: 'API documentation for the Disc app',
-        version: '1.0.0',
-      },
-      externalDocs: {
-        url: 'https://swagger.io',
-        description: 'Find more info here',
-      },
-      host: 'localhost:3000',
-      schemes: ['http'],
-      consumes: ['application/json'],
-      produces: ['application/json'],
-    },
-    exposeRoute: true,
+async function main() {
+  const app = Fastify({
+    logger: true,
   })
+
+  app.register(require('@fastify/swagger'))
+  app.register(require('@fastify/swagger-ui'), {
+    routePrefix: '/docs',
+    uiConfig: {
+      docExpansion: 'full',
+      deepLinking: false
+    },
+    uiHooks: {
+      onRequest: function (request, reply, next) { next() },
+      preHandler: function (request, reply, next) { next() }
+    },
+    staticCSP: true,
+    transformStaticCSP: (header) => header,
+    transformSpecification: (swaggerObject, request, reply) => { return swaggerObject },
+    transformSpecificationClone: true
+  })
+
+  app.put('/some-route/:id', {
+    schema: {
+      description: 'post some data',
+      tags: ['user', 'code'],
+      summary: 'qwerty',
+      params: {
+        type: 'object',
+        properties: {
+          id: {
+            type: 'string',
+            description: 'user id'
+          }
+        }
+      },
+      body: {
+        type: 'object',
+        properties: {
+          hello: { type: 'string' },
+          obj: {
+            type: 'object',
+            properties: {
+              some: { type: 'string' }
+            }
+          }
+        }
+      },
+      response: {
+        201: {
+          description: 'Successful response',
+          type: 'object',
+          properties: {
+            hello: { type: 'string' }
+          }
+        },
+        default: {
+          description: 'Default response',
+          type: 'object',
+          properties: {
+            foo: { type: 'string' }
+          }
+        }
+      },
+      security: [
+        {
+          "apiKey": []
+        }
+      ]
+    }
+  }, (req, reply) => { })
 
   app.register(fastifyPlugin(prismaPlugin))
 
@@ -42,31 +91,9 @@ const createFastifyApp = () => {
     reply.redirect('/docs')
   })
 
+
   app.get('/discs', {
-    schema: {
-      description: 'Retrieve a paginated list of discs',
-      tags: ['discs'],
-      querystring: {
-        type: 'object',
-        properties: {
-          page: { type: 'integer' },
-          pageSize: { type: 'integer' },
-        },
-      },
-      response: {
-        200: {
-          description: 'Successful response',
-          type: 'object',
-          properties: {
-            discs: { type: 'array', items: { type: 'object' } },
-            page: { type: 'integer' },
-            pageSize: { type: 'integer' },
-            totalPages: { type: 'integer' },
-            totalItems: { type: 'integer' },
-          },
-        },
-      },
-    },
+    schema: {},
     handler: async (request, reply) => {
       const page = parseInt(request.query.page) || 1;
       const pageSize = parseInt(request.query.pageSize) || 10;
@@ -90,27 +117,7 @@ const createFastifyApp = () => {
   })
 
   app.post('/discs', {
-    schema: {
-      description: 'Create a new disc',
-      tags: ['discs'],
-      body: {
-        type: 'object',
-        required: ['name'],
-        properties: {
-          name: { type: 'string' },
-        },
-      },
-      response: {
-        200: {
-          description: 'Successful response',
-          type: 'object',
-          properties: {
-            id: { type: 'integer' },
-            name: { type: 'string' },
-          },
-        },
-      },
-    },
+    schema: {},
     handler: async (request, reply) => {
       const newDisc = await app.prisma.disc.create({
         data: {
@@ -121,25 +128,26 @@ const createFastifyApp = () => {
     }
   })
 
-  return app
-}
-
-const fastifyApp = createFastifyApp()
-
-const isVercel = process.env.VERCEL_REGION !== undefined
-if (isVercel) {
-  module.exports = (req, res) => {
-    fastifyApp.ready((err) => {
-      if (err) throw err
-      fastifyApp.server.emit('request', req, res)
+  const isVercel = process.env.VERCEL_REGION !== undefined
+  if (isVercel) {
+    module.exports = (req, res) => {
+      app.ready((err) => {
+        if (err) throw err
+        app.server.emit('request', req, res)
+      })
+    }
+  } else {
+    app.listen({ port: 3000 }, (err) => {
+      if (err) {
+        console.error(err)
+        process.exit(1)
+      }
+      console.log('Server listening on http://localhost:3000')
     })
   }
-} else {
-  fastifyApp.listen({ port: 3000 }, (err) => {
-    if (err) {
-      console.error(err)
-      process.exit(1)
-    }
-    console.log('Server listening on http://localhost:3000')
-  })
 }
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
